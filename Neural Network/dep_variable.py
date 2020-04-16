@@ -8,7 +8,8 @@ import sqlite3
 import numpy as np
 
 # Create connection to database
-conn = sqlite3.connect('news.db')
+# conn = sqlite3.connect('news.db')
+conn = sqlite3.connect('news_testing.db')
 c = conn.cursor()
 
 ##################################################################
@@ -60,7 +61,12 @@ processed_raw_data = {}
 for date in raw_data:
     keywords = raw_data[date]
     # data cleaning and parsing
-    keywords = keywords.lower().replace(',', ' ').replace('.', ' ').replace('/', ' ').replace('{', ' ').replace('}', ' ').replace('<', ' ').replace('>', ' ').replace('[', ' ').replace(']', ' ').replace('?', ' ').split(' ')
+    keywords = keywords.lower().replace(',', ' ').\
+        replace('.', ' ').replace('/', ' ').replace('{', ' ') \
+        .replace('}', ' ').replace('<', ' ').replace('>', ' ') \
+        .replace('[', ' ').replace(']', ' ').replace('?', ' ') \
+        .replace('(', ' ').replace(')', ' ').replace(':', ' ') \
+        .replace(';', ' ').replace('*', ' ').split(' ')
     frequency_dict = {}
     for keyword in keywords:
         # filter out words with less than 4 characters (mainly propositions)

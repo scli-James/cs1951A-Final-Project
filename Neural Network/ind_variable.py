@@ -27,9 +27,9 @@ with open('time_series_covid19_deaths_global.csv') as csvfile:
 ##################################################################
 
 # map each date to the total number of confirmed cases in the world
-confirmed_dict = confirmed_data[-1]
+confirmed_dict = confirmed_data[-2]
 # map each date to the total number of deaths in the world
-death_dict = death_data[-1]
+death_dict = death_data[-2]
 
 # drop nonessential key/value pairs
 confirmed_dict.pop('Province/State')
@@ -44,6 +44,7 @@ death_dict.pop('Long')
 ##################################################################
 
 # Create connection to database
+# conn = sqlite3.connect('news.db')
 conn = sqlite3.connect('news_testing.db')
 c = conn.cursor()
 

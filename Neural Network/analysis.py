@@ -14,8 +14,10 @@ import matplotlib.pyplot as plt
 
 def preprocess():
     # Create connection to database
-    conn = sqlite3.connect('news_testing.db')
+    conn = sqlite3.connect('news.db')
+    conn2 = sqlite3.connect('news_testing.db')
     c = conn.cursor()
+    c2 = conn2.cursor()
 
     query_severity_command = '''
     SELECT * FROM severity
@@ -28,35 +30,49 @@ def preprocess():
     SELECT DISTINCT(keywords.date), num_articles FROM keywords
     '''
 
-    article_volume = [] # date, num_articles
-    date_map = {} # str(date) -> idx
+    article_volume_train = [] # date, num_articles
+    date_map_train = {} # str(date) -> idx
     idx = 0
     c.execute(query_num_articles_command)
     for row in c:
         date = row[0]
-        article_volume.append([date,row[1]])
-        if date not in set(date_map.keys()):
-            date_map[date] = idx
+        article_volume_train.append([date,row[1]])
+        if date not in set(date_map_train.keys()):
+            date_map_train[date] = idx
             idx += 1
     conn.commit()
 
-    with open('date_map.txt', 'w') as f:
-        f.write(json.dumps(date_map))
-    with open('article_volume.txt', 'w') as f:
-        for item in article_volume:
-            f.write("%s\n" % item)
+    article_volume_test = [] # date, num_articles
+    date_map_test = {} # str(date) -> idx
+    idx = 0
+    c2.execute(query_num_articles_command)
+    for row in c2:
+        date = row[0]
+        article_volume_test.append([date,row[1]])
+        if date not in set(date_map_test.keys()):
+            date_map_test[date] = idx
+            idx += 1
+    conn2.commit()
 
-    severity = [] # date, confirmed, death
+    severity_train = [] # date, confirmed, death
     c.execute(query_severity_command)
     for row in c:
         date = row[0]
         confirmed = row[1]
         death = row[2]
-        if date in set(date_map.keys()):
-            severity.append([date, confirmed, death])
-    with open('severity.txt', 'w') as f:
-        for item in severity:
-            f.write("%s\n" % item)
+        if date in set(date_map_train.keys()):
+            severity_train.append([date, confirmed, death])
+    conn.commit()
+    
+    severity_test = [] # date, confirmed, death
+    c2.execute(query_severity_command)
+    for row in c2:
+        date = row[0]
+        confirmed = row[1]
+        death = row[2]
+        if date in set(date_map_test.keys()):
+            severity_test.append([date, confirmed, death])
+    conn2.commit()
 
     keyword_occurance = {} # keyword: # occurance 
     c.execute(query_keyword_frequency_command)
@@ -76,101 +92,157 @@ def preprocess():
             keyword_map[keyword] = idx
             idx += 1
 
-    with open('keyword_map.txt', 'w') as f:
-        f.write(json.dumps(keyword_map))
-
-    keyword_frequency = [] # date, keyword, frequency
+    keyword_frequency_train = [] # date, keyword, frequency
     c.execute(query_keyword_frequency_command)
     for row in c:
         date = row[0]
         keyword = row[1]
         frequency = row[2]
         if keyword in keyword_occurance:
-            keyword_frequency.append([date, keyword, frequency])
+            keyword_frequency_train.append([date, keyword, frequency])
     conn.commit()
 
-    with open('keyword_frequency.txt', 'w') as f:
-        for item in keyword_frequency:
-            f.write("%s\n" % item)
+    keyword_frequency_test = [] # date, keyword, frequency
+    c2.execute(query_keyword_frequency_command)
+    for row in c2:
+        date = row[0]
+        keyword = row[1]
+        frequency = row[2]
+        if keyword in keyword_occurance:
+            keyword_frequency_test.append([date, keyword, frequency])
+    conn2.commit()
 
-
-    num_date = len(article_volume) # 2020.1.7 - 2020.3.8
+    num_date_train = len(article_volume_train) # 2020.1.7 - 2020.3.8
+    num_date_test = len(article_volume_test) # 2020.3.28 - 2020.4.11
     num_attr_x = len(keyword_map) + 1 #  #DISTINCT(keyword) + 1 num_articles
     num_attr_y = 2 # #confirmed, #death
-    inputs = torch.zeros((num_date, num_attr_x))
-    labels = torch.zeros((num_date, num_attr_y))
+    news_train = torch.zeros((num_date_train, num_attr_x))
+    news_test = torch.zeros((num_date_test, num_attr_x))
+    cases_train = torch.zeros((num_date_train, num_attr_y))
+    cases_test = torch.zeros((num_date_test, num_attr_y))
 
-    for row in keyword_frequency:
-        date_idx = date_map[row[0]]
+    for row in keyword_frequency_train:
+        date_idx = date_map_train[row[0]]
         keyword_idx = keyword_map[row[1]]
         frequency = row[2]
-        inputs[date_idx][keyword_idx] = frequency
+        news_train[date_idx][keyword_idx] = frequency
+    
+    for row in keyword_frequency_test:
+        date_idx = date_map_test[row[0]]
+        keyword_idx = keyword_map[row[1]]
+        frequency = row[2]
+        if keyword_idx is not None:
+            news_test[date_idx][keyword_idx] = frequency
 
-    for row in article_volume:
-        date_idx = date_map[row[0]]
+    for row in article_volume_train:
+        date_idx = date_map_train[row[0]]
         num_articles = row[1]
-        inputs[date_idx][num_attr_x-1] = num_articles
+        news_train[date_idx][num_attr_x-1] = num_articles
+    
+    for row in article_volume_test:
+        date_idx = date_map_test[row[0]]
+        num_articles = row[1]
+        news_test[date_idx][num_attr_x-1] = num_articles
 
-    # normalize inputs
-    row_sums = inputs.sum(axis=1)
-    inputs = inputs / row_sums[:, np.newaxis]
+    # # normalize news
+    # news_sums_train = news_train.sum(axis=1)
+    # news_train = news_train / news_sums_train[:, np.newaxis]
+    # news_sums_test = news_test.sum(axis=1)
+    # news_test = news_test / news_sums_test[:, np.newaxis]
+    # # normalize cases
+    # cases_sums_train = cases_train.sum(axis=1)
+    # cases_train = cases_train / cases_sums_train[:, np.newaxis]
+    # cases_sums_test = cases_test.sum(axis=1)
+    # cases_test = cases_test / cases_sums_test[:, np.newaxis]
 
-    for row in severity:
-        date_idx = date_map[row[0]]
-        labels[date_idx][0] = row[1] # confirmed
-        labels[date_idx][1] = row[2] # death
+    for row in severity_train:
+        date_idx = date_map_train[row[0]]
+        cases_train[date_idx][0] = row[1] # confirmed
+        cases_train[date_idx][1] = row[2] # death
+    
+    for row in severity_test:
+        date_idx = date_map_test[row[0]]
+        cases_test[date_idx][0] = row[1] # confirmed
+        cases_test[date_idx][1] = row[2] # death
 
-    torch.save(inputs, 'inputs.pt')
-    torch.save(labels, 'labels.pt')
+    # saving preprocessed data
+    with open('intermediate_data/date_map_train.txt', 'w') as f:
+        f.write(json.dumps(date_map_train))
+    with open('intermediate_data/article_volume_train.txt', 'w') as f:
+        for item in article_volume_train:
+            f.write("%s\n" % item)
+    with open('intermediate_data/date_map_test.txt', 'w') as f:
+        f.write(json.dumps(date_map_test))
+    with open('intermediate_data/article_volume_test.txt', 'w') as f:
+        for item in article_volume_test:
+            f.write("%s\n" % item) 
+    with open('intermediate_data/severity_train.txt', 'w') as f:
+        for item in severity_train:
+            f.write("%s\n" % item)
+    with open('intermediate_data/severity_test.txt', 'w') as f:
+        for item in severity_test:
+            f.write("%s\n" % item)
+    with open('intermediate_data/keyword_map.txt', 'w') as f:
+        f.write(json.dumps(keyword_map))
+    with open('intermediate_data/keyword_frequency_train.txt', 'w') as f:
+        for item in keyword_frequency_train:
+            f.write("%s\n" % item)
+    with open('intermediate_data/keyword_frequency_test.txt', 'w') as f:
+        for item in keyword_frequency_test:
+            f.write("%s\n" % item)
+    torch.save(news_train, 'intermediate_data/news_train.pt')
+    torch.save(cases_train, 'intermediate_data/cases_train.pt')
+    torch.save(news_test, 'intermediate_data/news_test.pt')
+    torch.save(cases_test, 'intermediate_data/cases_test.pt')
 
 def unison_shuffled_copies(a, b):
     assert len(a) == len(b)
     p = np.random.permutation(len(a))
     return a[p], b[p]
 
-def train(inputs, labels):
-    [num_date, num_attr_x] = inputs.size()
-    [_, num_attr_y] = labels.size()
-    hidden_sz = 150
-    model = torch.nn.Sequential(
-        torch.nn.Linear(num_attr_x, hidden_sz),
-        torch.nn.ReLU(),
-        torch.nn.Linear(hidden_sz, num_attr_y)
-    )
-
-    loss_fn = torch.nn.MSELoss()
-    learning_rate = 1e-5
-
+def train(model, inputs, labels, loss_fn, optimizer):
     epoch_x_list = []
     epoch_y_list = []
-
-    for epoch in range(4200):
+    for epoch in range(4000):
         # shuffle
         inputs, labels = unison_shuffled_copies(inputs, labels)
-
         preds = model(inputs)
         loss = loss_fn(preds, labels)
-
-
-        if epoch % 200 == 0:
-            print("Epoch", epoch, loss.item())
+        if epoch % 10 == 0:
+            print('Epoch', epoch, 'Loss:', loss.item())
             epoch_x_list.append(epoch)
-            epoch_y_list.append(loss.item() * 1000)
-
+            epoch_y_list.append(float(loss.data))
         model.zero_grad()
         loss.backward()
-        with torch.no_grad():
-            for param in model.parameters():
-                param -= learning_rate * param.grad
-
-    # plot data
+        optimizer.step()
     plt.plot(epoch_x_list, epoch_y_list)
-    plt.title('Neural Network: Loss over Epoch Number (scaled by 1000)')
+    plt.title('Logistic Regression: From News To Cases')
+    # plt.title('Logistic Regression: From Cases To News')
+    # plt.title('Neural Network: From News To Cases')
+    # plt.title('Neural Network: From Cases To News')
     plt.xlabel('Epoch Number')
-    plt.ylabel('Loss')
+    plt.ylabel('Sigmoid Loss')
+    # plt.ylabel('Mean Squared Loss')
     plt.show()
 
+def test(model, inputs, labels, loss_fn):
+    with torch.no_grad():
+        preds = model(inputs)
+        print(preds)
+        print(labels)
+        loss = loss_fn(preds, labels)
+        print("Testing loss", loss.item())
+        plt.plot(preds, labels)
+        plt.show()
 
+class LogisticRegressionModel(torch.nn.Module):
+    def __init__(self, input_size, output_size):
+        super(LogisticRegressionModel, self).__init__()
+        self.linear = torch.nn.Linear(input_size, output_size)
+
+    def forward(self, x):
+        y_predict = torch.sigmoid(self.linear(x)) # to convert to 1 or 0 
+        return y_predict
 
 
 if __name__ == "__main__":
@@ -181,13 +253,54 @@ if __name__ == "__main__":
                         help="run training loop")
     parser.add_argument("-t", "--test", action="store_true",
                         help="run testing loop")
+    parser.add_argument("-nn", "--neural_network", action="store_true",
+                        help="building neural network model")
+    parser.add_argument("-lr", "--logistic_regression", action="store_true",
+                        help="building logistic regression model")
+    parser.add_argument("-cn", "--cases_to_news", action="store_true",
+                        help="using cases to predict news")
+    parser.add_argument("-nc", "--news_to_cases", action="store_true",
+                        help="using news to predict cases")
     args = parser.parse_args()
+    
+    # For preprocessing, enter: python3 analysis.py -p
+    # Else, enter: python3 analysis.py -[lr]/[nn] -[cn]/[nc] -[T]/[t]
+    # i.e. python3 analysis.py -lr -nc -T
+    # above command runs linear regression training on news2cases
 
     if args.preprocess:
         print("preprocessing data...")
         preprocess()
+    if args.cases_to_news:
+        inputs_train = torch.load('intermediate_data/cases_train.pt')
+        inputs_test = torch.load('intermediate_data/cases_test.pt')
+        labels_train = torch.load('intermediate_data/news_train.pt')
+        labels_test = torch.load('intermediate_data/news_test.pt')
+        [_, num_attr_x] = inputs_train.size()
+        [_, num_attr_y] = labels_train.size()
+    if args.news_to_cases:
+        inputs_train = torch.load('intermediate_data/news_train.pt')
+        inputs_test = torch.load('intermediate_data/news_test.pt')
+        labels_train = torch.load('intermediate_data/cases_train.pt')
+        labels_test = torch.load('intermediate_data/cases_test.pt')
+        [_, num_attr_x] = inputs_train.size()
+        [_, num_attr_y] = labels_train.size()
+    if args.neural_network:
+        hidden_sz = 103
+        model = torch.nn.Sequential(
+            torch.nn.Linear(num_attr_x, hidden_sz),
+            torch.nn.ReLU(),
+            torch.nn.Linear(hidden_sz, num_attr_y)
+        )
+        loss_fn = torch.nn.MSELoss()
+        optimizer = torch.optim.Adam(model.parameters(), 0.0001)
+    if args.logistic_regression:
+        model = LogisticRegressionModel(num_attr_x, num_attr_y)
+        loss_fn = torch.nn.BCELoss()
+        optimizer = torch.optim.SGD(model.parameters(), 0.01)
     if args.train:
         print("training model...")
-        inputs = torch.load('inputs.pt')
-        labels = torch.load('labels.pt')
-        train(inputs, labels)
+        train(model, inputs_train, labels_train, loss_fn, optimizer)
+    if args.test:
+        print("testing model...")
+        test(model, inputs_test, labels_test, loss_fn)
