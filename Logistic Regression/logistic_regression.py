@@ -19,9 +19,10 @@ import numpy as np
 import json
 import argparse
 import math
+import matplotlib.pyplot as plt
 
 
-def preprocess():
+def preprocess_training():
     # Create connection to database
     conn = sqlite3.connect('news.db')
     c = conn.cursor()
@@ -67,7 +68,7 @@ def preprocess():
         for item in severity:
             f.write("%s\n" % item)
 
-    keyword_occurance = {} # keyword: # occurance 
+    keyword_occurance = {} # keyword: # occurence 
     c.execute(query_keyword_frequency_command)
     for row in c:
         keyword = row[1]
@@ -157,6 +158,23 @@ def preprocess():
     torch.save(inputs, 'inputs.pt')
     torch.save(labels, 'labels.pt')
 
+def preprocess_testing():
+    # Create connection to database
+    conn = sqlite3.connect('news_testing.db')
+    c = conn.cursor()
+
+    query_severity_command = '''
+    SELECT * FROM severity
+    '''
+    query_keyword_frequency_command = '''
+    SELECT * FROM keywords
+    WHERE frequency > 1
+    '''
+    query_num_articles_command = '''
+    SELECT DISTINCT(keywords.date), num_articles FROM keywords
+    '''
+    pass
+
 def train(inputs, labels):
     class LogisticRegressionModel(nn.Module):
         def __init__(self, input_size, output_size):
@@ -175,6 +193,9 @@ def train(inputs, labels):
     criteria = nn.BCELoss()
     optimizer = optim.SGD(model.parameters(), 0.01)
 
+    epoch_x_list = []
+    epoch_y_list = []
+
     for epoch in range(10000):
         y_predict = model(x)
         loss =criteria(y_predict, y)
@@ -183,27 +204,60 @@ def train(inputs, labels):
         optimizer.step() # update the weights
         if epoch % 200 == 0:
             print(epoch, float(loss.data))
+            epoch_x_list.append(epoch)
+            epoch_y_list.append(float(loss.data))
+    
+    plt.plot(epoch_x_list, epoch_y_list)
+    plt.title('Logistic Regression: Sigmoid Loss over Epoch Number')
+    plt.xlabel('Epoch Number')
+    plt.ylabel('Loss')
+    plt.show()
 
+    return model
     #test = Variable(torch.Tensor([[20]]))
     #z = model.forward(test)
     #print(float(z))
 
+def predict(inputs, labels, model):
+    new_x = Variable(torch.Tensor(inputs))
+    print(inputs)
+    y_pred = model(new_x)
+    print("predicted Y value: ", y_pred)
+    print("loss", labels - y_pred)
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("-p", "--preprocess", action="store_true",
+    parser.add_argument("-P", "--preprocess_training", action="store_true",
+                        help="saving inputs and labels")
+    parser.add_argument("-p", "--preprocess_testing", action="store_true",
                         help="saving inputs and labels")
     parser.add_argument("-T", "--train", action="store_true",
                         help="run training loop")
     parser.add_argument("-t", "--test", action="store_true",
                         help="run testing loop")
+    parser.add_argument("-d", "--predict", action="store_true",
+                        help="print predict graph")
     args = parser.parse_args()
 
-    if args.preprocess:
-        print("preprocessing data...")
-        preprocess()
+    if args.preprocess_training:
+        print("preprocessing training data...")
+        preprocess_training()
 
+    if args.preprocess_testing:
+        print("preprocessing testing data...")
+        preprocess_testing()
+    
     if args.train:
         print("training model...")
         inputs = torch.load('inputs.pt')
         labels = torch.load('labels.pt')
-        train(inputs, labels)
+        model = train(inputs, labels)
+        #inputs = torch.load('inputs_testing.pt')
+        #labels = torch.load('labels_testing.pt')
+        predict(inputs, labels, model)
+
+    if args.predict:
+        print("predicting model...")
+        inputs = torch.load('inputs_testing.pt')
+        labels = torch.load('labels_testing.pt')
+        predict(inputs, labels)

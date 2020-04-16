@@ -44,7 +44,7 @@ death_dict.pop('Long')
 ##################################################################
 
 # Create connection to database
-conn = sqlite3.connect('news.db')
+conn = sqlite3.connect('news_testing.db')
 c = conn.cursor()
 
 # Delete tables if they exist

@@ -10,6 +10,7 @@ import json
 import torch
 import argparse
 import math
+import matplotlib.pyplot as plt
 
 def preprocess():
     # Create connection to database
@@ -108,15 +109,11 @@ def preprocess():
     for row in article_volume:
         date_idx = date_map[row[0]]
         num_articles = row[1]
-        # TODO:
         inputs[date_idx][num_attr_x-1] = num_articles
 
-    print(inputs)
     # normalize inputs
     row_sums = inputs.sum(axis=1)
     inputs = inputs / row_sums[:, np.newaxis]
-
-    print(inputs)
 
     for row in severity:
         date_idx = date_map[row[0]]
@@ -144,19 +141,35 @@ def train(inputs, labels):
     loss_fn = torch.nn.MSELoss()
     learning_rate = 1e-5
 
+    epoch_x_list = []
+    epoch_y_list = []
+
     for epoch in range(4200):
         # shuffle
         inputs, labels = unison_shuffled_copies(inputs, labels)
 
         preds = model(inputs)
         loss = loss_fn(preds, labels)
+
+
         if epoch % 200 == 0:
             print("Epoch", epoch, loss.item())
+            epoch_x_list.append(epoch)
+            epoch_y_list.append(loss.item() * 1000)
+
         model.zero_grad()
         loss.backward()
         with torch.no_grad():
             for param in model.parameters():
                 param -= learning_rate * param.grad
+
+    # plot data
+    plt.plot(epoch_x_list, epoch_y_list)
+    plt.title('Neural Network: Loss over Epoch Number (scaled by 1000)')
+    plt.xlabel('Epoch Number')
+    plt.ylabel('Loss')
+    plt.show()
+
 
 
 
