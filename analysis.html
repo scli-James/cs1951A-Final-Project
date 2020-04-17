@@ -66,7 +66,6 @@ li{
 
 
 
-
         	</ul>
 
         	<ul>
@@ -156,6 +155,41 @@ li{
     			</li>
     		</ul>
 
+    		<h1> Exploratory Visualization </h1>
+    		<ul> 
+    			 <li> Histograms
+    			 	<ul> 
+    			 		<li>
+    			 			Since the correlation between keywords in new articles and the severity of the pandemic is relativley unknown, we started off with plotting the the frequency of some coronavirus-related keywords e.g. “pandemic” against date to try to identify a trend. Note that frequency here is calculated by the occurence of the word in all articles of that day over the total number of articles. 
+    			 		</li>
+    			 		<img src="pandemic_frequency.png" alt="pandemic frequency" style="width:800px;">
+    			 		<li>
+    			 			This histogram maps the frequency of the word “pandemic” by Date. The two pivots are on 1/29 and 2/25. These two dates are significant in the case history of coronavirus in that from 1/26 to 1/29 , confirmed cases in China spiked from 2000 to 6000 and the CDC issued a level 3 alert warning against all non-essential travels to China. And on 2/25, confirmed cases worldwide hit 80,000 the first time.
+
+    			 		</li>
+    			 	</ul>
+    			 </li>
+    			 <li>Line Graphs
+    			 	<ul>
+    			 		<li> 
+    			 			
+    			 		We also want to track  gradual changes in frequency of certain words e.g. “china” over a long period of time. And for this, using a line graph in this is ideal. 
+    			 		</li>
+    			 		<img src="china-frequency.png" alt="china frequency" style="width:900px; height: 450px;">
+    			 		<li>This histogram maps the frequency of the word “china” by Date. We see that there is a general downward trend in frequency, which matches up with current events since in the beginning of the coronavirus outbreak, the Hubei Province of China was the only place that had a few hundred cases. So new coverage about China was frequent in January. However, starting from March, coronavirus has become a global pandemic. Coverage on “china” gradually decreased to focus on other outbreaks around the world. 
+
+    			 		</li>
+    			 		
+    			 	</ul>
+    			 	
+    			 </li>
+    			 <li>
+    			 	Overall, these exploratory visualizations helped us further deduce that there is a relationship between news coverage(independent variable) and severity of the pandemic(dependent vairable), and maybe one can help us predict the other.
+    			 </li>
+
+    		</ul>
+
+
     		<h3> Why did you use this statistical test or ML algorithm? Which other tests did you consider or evaluate? How did you measure success or failure? Why that metric/value? What challenges did you face evaluating the model? Did you have to clean or restructure your data?</h3>
     		<ul>
     			<li>Overview:
@@ -199,6 +233,18 @@ li{
     			 </li>
 
     			 <li> Neural Network: <a href="https://github.com/izziegeez/cs1951A-Final-Project/tree/master/Neural_Network"> Github Link </a> 
+    			 	<ul> 
+    			 		<li>
+    			 			Using Neural Networks, we attempted to find out if we can predict the severity of the pandemic from keyword frequencies in the news coverage that day. A more complex model, such as NN, is able to extrapolate from samples with higher dimensionality. 
+
+    			 		</li>
+
+    			 		<li> 
+    			 			We adopted a 3-layer NN, composed of 1 linear layer, 1 ReLU, and 1 linear layer. We split ⅘ of data for training and ⅕ for testing. If a significant decrease in loss can be observed, specifically a 33% decrease in loss from a trained and an untrained model, then we determine that the prediction is statistically significant and our model is well-trained.
+
+    			 		</li>
+    			 		<li> We came across two challenges when dealing with this model. Firstly, we have to do extensive restructuring and filtering of data before it can be fed to training. For example, there are over 10k keywords throughout the time window of which we observe. Using all keywords would involve too much noise and significantly increase training time. Therefore, we need to size it down through means such as removing all keywords shorter than 4 letters and popping all keywords that occurred in fewer than 30 days. Then we need to use dictionaries to translate date and keyword string to integer indices so that we can store and access frequencies with row and column numbers. Secondly, due to the nature of neural networks, a lot of aspects remain hidden from direct observation. We have to tailor the model by tweaking its layers, optimizers, learning rate, hidden size, etc. to generate better loss. However, since our samples are a short collection of time-series data, overfitting appears quite early and frequently, resulting in a seemingly good training loss and a terribly looking testing loss.</li>
+    			 	</ul>
     			 </li>
     		</ul>
 
@@ -218,6 +264,13 @@ li{
 
     			</li>
     			<li>Neural Network: 
+    				<ul> 
+    					<li> The results from neural networks are not as satisfactory as expected. Consistent decrease in loss is only observed in training but not testing. Testing loss is slightly less than training loss in epoch 1, indicating that the prediction might have been random.</li>
+    					<img src="nn_n2c_T.png" alt="nn_n2c_T" style="width:500px; height:400px;">
+    					<img src="nn_epoch.png" alt="nn_epoch" style="width:500px; height:350px;">
+    					<li>To measure the success of the model, I use a set of untrained layers composed of random tensors as a benchmark. If the testing loss of a trained model is significantly higher than that of an untrained random model, then we conclude that the prediction is acceptable. However, the two losses do not vary much, with less than 10% difference, we conclude that our prediction is not satisfactory. </li>
+    					<li> Intuitively, we think that the shortage of a long enough time-series might have to do with the close-to-random predictions we yield. However, it is hard to conclude without more data to test with.</li>
+    				</ul>
     			</li>
     		</ul>
 
@@ -225,7 +278,10 @@ li{
 
 
     		<h3>Full results + graphs (at least 1 stats/ml test and at least 1 visualization). Depending on your model/test/project we would ideally like you to show us your full process so we can evaluate how you conducted the test! </h3>
-
+    		<img src="snippet1.png" alt="snippet1" style="width:700px; height:200px;">
+    		<img src="snippet2.png" alt="snippet2" style="width:700px; height:350px;">
+    		<img src="snippet3.png" alt="snippet3" style="width:700px; height:250px;">
+    		
 
     		<h3>If you did a machine learning model, why did you choose this machine learning technique? Does your data have any sensitive/protected attributes that could affect your machine learning model? </h3>
     		<ul>
@@ -239,7 +295,12 @@ li{
     					<li> We chose logistic regression because it is widely regarded as an effective categorization algorithm. However, due to the relatively small number of training data points (62 days) and a generalization of labels data, the model might be overfitting.  </li>
     				 </ul>
     			</li>
-    			<li>Neural Network:  </li>
+    			<li>Neural Network:  
+    				<ul>
+    					<li>We chose neural networks because it allows us to capture any unseen relations between the pandemic and the coverage of it and use it to make predictions.
+The limitations from the API in which we used to collect data might have internal bias, thusly adding more biases and noises in the data we fed into NNs.</li>
+    				</ul>
+    			</li>
     		</ul>
 
     		<h1> Future Directions: </h1>
