@@ -1,0 +1,289 @@
+<html>
+<head>
+    <link rel="stylesheet" href="https://netdna.bootstrapcdn.com/bootstrap/3.0.3/css/bootstrap.min.css">
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Data</title>
+</head>
+
+<body>
+
+<div class="row">
+    <div class="col-md-2"></div>
+    <div class="col-md-8">
+        <div class="page-header center">
+            <h1>Bogus Of The Catastrophic<br>
+                <<< Analysis Deliverable>>></h1>
+        </div>
+
+        <h2> Prediction </h2>
+        	<ul>
+            <li> hello world</li>
+            
+        </ul>
+
+
+        <h4> Data Repositories </h4>
+        <ul>
+            <li> <a href="https://drive.google.com/drive/folders/16DOAm9vX_LPkN2mFtJnthK79PjcON00D?usp=sharing">Database 1 (weibo API) </a></li>
+            <li> <a href="https://drive.google.com/open?id=1y-sZusxVj08rQ6fVbI-0HNkpXBHf7p0f">Database 2 (news.db)</a> </li>
+            <li> <a href="https://drive.google.com/file/d/1UQkMQCcy-mlhtM6xL5GM2uthBo6wJFxN/view?usp=sharing">Database 3 (censored_articles_raw.json)</a> </li>
+            <li> <a href="https://drive.google.com/open?id=1d-n-8YTHo1a3QanWFomQ5LLI-QSA1wgL">Team Folder</a> </li>
+        </ul>
+
+        <h4> Data Spec </h4>
+
+        <h5> Database 1: Weibo API </h5>
+        <ul>
+            <li>
+                id: the number id of the post
+            </li>
+            <li>
+                bid: the string id of the post
+            </li>
+            <li>
+                body: the body of the post
+            </li>
+            <li>
+                original photo url: empty if the post does not have photo
+            </li>
+            <li>
+                original video url: empty if the post does not have videos
+            </li>
+            <li>
+                likes: number of thumbs up
+            </li>
+            <li>
+                comments: number of comments
+            </li>
+            <li>
+                share: number of shares
+            </li>
+            <li>
+                hashtag: the hashtag of the  post
+            </li>
+            <li>
+                @: the accounts that the post mentioned
+            </li>
+        </ul>
+
+        <h5> Database 2: news.db (three tables) </h5>
+
+        <I>Except num_articles, all data are currently stored as strings. Date, especially, is stored in YYYY-MM-DD format.</I>
+
+        <h6> Table 1: 'articles' </h6>
+
+        <ul>
+            <li>
+                date: the date the news article was published
+            </li>
+            <li>
+                title: the title of the article
+            </li>
+            <li>
+                url: the url of the article
+            </li>
+            <li>
+                description: a summary of the content of the article
+            </li>
+            <li>
+                body: an excerpt from the article
+            </li>
+            <li>
+                keywords: the central themes of the article. Words and phrases separated by comma
+            </li>
+            <li>
+                language: the language in which the article is written
+            </li>
+            <li>
+                provider: the news outlet that published the article
+            </li>
+        </ul>
+
+        <h6> Table 2: 'days' </h6>
+
+        <p>It includes the information that is pertinent to each date. This table will be expanded upon in the future to contain more detailed information.</p>
+
+        <ul>
+            <li>
+                date: the date in question
+            </li>
+            <li>
+                num_articles: the number of articles that are returned by the API based on the search term ‘coronavirus’ for that day
+            </li>
+        </ul>
+
+        <h6> Table 3: 'searches' </h6>
+
+        <p>It records the most popular search terms from various news outlets that are related to coronavirus.</p>
+
+        <ul>
+            <li>
+                date: the date on which a search term is trending
+            </li>
+            <li>
+                search_term: the word that is often searched, related to the coronavirus.
+            </li>
+        </ul>
+
+        <h5> Database 3: censored_articles_raw.json </h5>
+
+        <p>It records information of censored public articles on Chinese social media.</p>
+
+        <ul>
+            <li>
+                url: the original link of the published article
+            </li>
+            <li>
+                title: title of the article
+            </li>
+            <li>
+                title_eng: English title
+            </li>
+            <li>
+                nickname: nickname of the publisher
+            </li>
+            <li>
+                created_at: created time
+            </li>
+            <li>
+                archive: archive address of the censored article
+            </li>
+            <li>
+                censored_date: date on which the article got censored
+            </li>
+            <li>
+                censored_msg: censored reason given by the government
+            </li>
+            <li>
+                update_date: date when this article was updated by the publisher
+            </li>
+
+
+        </ul>
+
+        <h4> Where is the data from? </h4>
+        <ul>
+            <li>
+                How did you collect your data?
+
+                <ul>
+                    <li>
+                        Group Member A: I collected the data from weibo (a Chinese social media platform that is functionally similar to Facebook).
+                    </li>
+                    <li>
+                        Group Member B: I gathered news articles from two different third-party news APIs - News API and Contextual Web news API. Using search terms ‘coronavirus’, ‘COVID’, ‘nCov’, and other search terms that are closely related to the current epidemic, I gathered news articles from across the world that report on the issue, and further categorizes them based on time of publication, language, country, etc.
+                    </li>
+                    <li>
+                        Group Member C: I collected articles on China’s largest social media platform, WeChat, (western counterpart being facebook). The data comes from a private API chinese programmers built. I used search terms closely related to COVID as a filter.
+                    </li>
+                </ul>
+
+            </li>
+            <li>
+                Is the source reputable?
+
+                <ul>
+                    <li>
+                        Group Member A: I collected weibo posts by Communist Youth League Central, and People’s Daily. Both are official accounts, thus reputable.
+                    </li>
+                    <li>
+                        Group Member B: Based on the sources that the third-party news API that are tracking, I deem most of them as mainstream news outlets, and should be reasonably reputable. Just in case, I have recorded the news outlet of each article, and will potentially screen the reliability of the news article based on their source. However, taken into consideration the amount of articles in question, it is likely that the few unreliable sources would not significantly skew the data.
+                    </li>
+                    <li>
+                        Group Member C: The source is reliable in the sense that it accurately sources the original articles from wechat. However, sine these articles are all censored by wechat, whether the original publisher is reputable or not remains questionable. Perhaps, a more detailed scrutiny is required to make sure all articles are appropriate for our research questions.
+                    </li>
+                </ul>
+
+            </li>
+            <li>
+                How did you generate the sample? Is it comparably small or large? Is it representative or is it likely to exhibit some kind of sampling bias?
+                <ul>
+                    <li>
+                        Group Member A: My data is likely to exhibit some smapling bias, since I only gathered data in the last 20 days(the complete dataset is huge otherwise). It is comparably small. To get a sense of how the corona virus issue escalated, we need the media's standpoint from over 20 days ago.
+                    </li>
+                    <li>
+                        Group Member B: The sample size (number of articles gathered) approaches 10,000, which I deem sufficiently large. The timeframe at which I gathered news sources extends all the way back to early January, which was before media paid any attention to the coronavirus issue, so the sampling should be relatively representative in terms of the timeframe. As for the news sources that I am using, they are spread across the entire globe, but are predominantly published in English, so they might display some sampling bias when it comes to our research question.
+                    </li>
+                    <li>
+                        Group Member C: The sample size is limited by the API since it only stores articles from the past 14 days. We might need to look for another way to work around this to make sure our samples are representative enough.
+                    </li>
+                </ul>
+            </li>
+            <li>
+                Are there any other considerations you took into account when collecting your data? This is open-ended based on your data; feel free to leave this blank. (Example: If it's user data, is it public/are they consenting to have their data used? Is the data potentially skewed in any direction?
+                <ul>
+                    <li>
+                        The news articles I gathered are inherently limited by the sources that are currently tracked by the APIs I am using, which entails that they are not necessarily representative of the general news media. However, considering the number of sources that are used, I think this effect should be mostly mitigated.
+                    </li>
+                </ul>
+            </li>
+        </ul>
+
+        <h4> How clean is the data? Does this data contain what you need in order to complete the project you proposed to do? </h4>
+        <ul>
+            <li>
+                How many data points are there total? How many are there in each group you care about (e.g. if you are dividing your data into positive/negative examples, are they split evenly)? Do you think this is enough data to do what you hope to do?
+                <ul>
+                    <li>
+                        news.db contains 9926 articles as of right now, with possibilities of adding more articles in the future, considering that coronavirus is an ongoing event. I think this sample size is enough to conduct any kind of statistical analysis that we might need.
+                    </li>
+                </ul>
+            </li>
+            <li>
+                Are there missing values? Do these occur in fields that are important for your project's goals?
+                <ul>
+                    <li>
+                        news.db has no missing value for the more important columns, such as article title and source, so further analyses can focus on these parts.
+                    </li>
+                </ul>
+            </li>
+            <li>
+                Are there duplicates? Do these occur in fields that are important for your project's goals?
+                <ul>
+                    <li>
+                        Interestingly enough, there are completely duplicate news articles in terms of title and contents, published by different sources. I am debating on whether they should be uniqued or not, but they are rare enough that they should not pose a major issue.
+                    </li>
+                </ul>
+            </li>
+            <li>
+                How is the data distributed? Is it uniform or skewed? Are there outliers? What are the min/max values? (focus on the fields that are most relevant to your project goals)
+                <ul>
+                    <li>
+                        News contents are stored as strings so far. The distribution of attributes, such as word frequencies, will be analyzed in the stats part.
+                    </li>
+                </ul>
+            </li>
+            <li>
+                Are there any data type issues (e.g. words in fields that were supposed to be numeric)? Where are these coming from? (E.g. a bug in your scraper? User input?) How will you fix them?
+                <ul>
+                    <li>
+                        News contents are strings by nature, so it would require more parsing down the line to extract more valuable information.
+                    </li>
+                </ul>
+            </li>
+            <li>
+                Do you need to throw any data away? What data? Why? Any reason this might affect the analyses you are able to run or the conclusions you are able to draw?
+                <ul>
+                    <li>
+                        Our data is not very clean since I was only able to scrape all posts from certain accounts. I have not filtered out posts that are unrelated to “coronavirus” despite most are concered about the coronavirus. Throwing away unrelated data will be our next step.
+                    </li>
+                </ul>
+            </li>
+
+
+        </ul>
+
+        <h4> Summarize any challenges or observations you have made since collecting your data. Then, discuss your next steps and how your data collection has impacted the type of analysis you will perform.
+        </h4>
+
+        <ul>
+            <li>
+                One challenge that we noticed was that although we were able to get an abundance of data, it was hard to clean some of the data since Chinese is inherently a language that has a lot of synomyms, thus harder to scrape by keywords. There are also translation issues, since we are planning to compare data from sources of different languages (we plan on focusing on words that are more unequivocally translatable for the purpose of statistical analyses). However, through data collection, we noticed a vast contrast between the content from published media and censored media. This helped us summarize our new resrarch question : how does the opinion regarding COVID-19 from publically accessible reports deviate from those that are consored? The next step is to devise an efficient way to scrape the data using key words in a way that does not filter out important posts but also retain only relevent posts. 
+            </li>
+        </ul>
+    </div>
+</div>
+
+</body>
+</html>
