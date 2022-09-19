@@ -1,1 +1,1 @@
-# cs1951A-Final-Project
+see the pdf poster for more information
